@@ -1,8 +1,8 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.schedule.app",
-        "sha256_cert_fingerprints": ["46:E8:8B:CF:33:68:39:FA:53:D4:46:40:FA:96:BA:4D:34:45:89:C9:F2:16:63:36:48:9F:CA:01:78:A0:62:97"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.schedule.app",
+    "sha256_cert_fingerprints": ["33:B6:11:A9:72:02:38:16:A4:7D:F4:3A:52:48:05:28:2A:61:68:B7:DA:CE:3A:AD:15:AC:B2:31:CD:BD:AB:2B"]
+  }
+}]
