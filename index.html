@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4f7cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="我的课表">
+<title>我的课表</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+<div id="app">
+
+  <!-- 顶部状态栏 -->
+  <header class="top-bar">
+    <div class="top-left">
+      <button class="icon-btn" id="btnPrevWeek" title="上一周">‹</button>
+      <div class="week-info">
+        <span id="weekLabel">第 1 周</span>
+        <span class="term-text" id="termText">2026 秋季</span>
+      </div>
+      <button class="icon-btn" id="btnNextWeek" title="下一周">›</button>
+    </div>
+    <div class="top-right">
+      <div class="clock-widget">
+        <span class="clock-time" id="clockTime">--:--</span>
+        <span class="clock-date" id="clockDate">--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="content">
+
+    <!-- 课表页 -->
+    <section class="page page-schedule active" id="pageSchedule">
+      <div class="schedule-wrap">
+        <div class="schedule-head" id="scheduleHead"></div>
+        <div class="schedule-body" id="scheduleBody"></div>
+      </div>
+      <button class="fab" id="btnAddCourse" title="添加课程">+</button>
+    </section>
+
+    <!-- 提醒页 -->
+    <section class="page page-reminder" id="pageReminder">
+      <div class="page-header">
+        <h2>课程提醒</h2>
+        <label class="switch">
+          <input type="checkbox" id="reminderToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="reminder-settings">
+        <div class="setting-row">
+          <span>提前提醒</span>
+          <select id="reminderAdvance">
+            <option value="0">上课即时</option>
+            <option value="5" selected>5 分钟前</option>
+            <option value="10">10 分钟前</option>
+            <option value="15">15 分钟前</option>
+            <option value="30">30 分钟前</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span>提醒铃声</span>
+          <select id="reminderSound">
+            <option value="on" selected>开启</option>
+            <option value="off">静音</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span>桌面通知</span>
+          <button class="mini-btn" id="btnNotifyPermit">授权</button>
+        </div>
+      </div>
+      <div class="upcoming-title">即将到来</div>
+      <div class="upcoming-list" id="upcomingList"></div>
+    </section>
+
+    <!-- 导入页 -->
+    <section class="page page-import" id="pageImport">
+      <div class="page-header">
+        <h2>截图导入课表</h2>
+      </div>
+      <div class="import-area">
+        <div class="import-tip">
+          <p>📸 支持识别课表截图，自动提取课程名称、时间、地点</p>
+          <p class="tip-sub">建议使用清晰的课表截图，识别后可手动修正</p>
+        </div>
+        <label class="upload-btn">
+          <input type="file" id="fileInput" accept="image/*" hidden>
+          <span>选择截图</span>
+        </label>
+        <div class="preview-area" id="previewArea">
+          <div class="preview-placeholder">尚未选择图片</div>
+        </div>
+        <button class="primary-btn" id="btnRecognize" disabled>开始识别</button>
+        <div class="ocr-progress" id="ocrProgress" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text" id="progressText">识别中...</div>
+        </div>
+        <div class="ocr-result" id="ocrResult" style="display:none">
+          <h3>识别结果</h3>
+          <div class="result-list" id="resultList"></div>
+          <button class="primary-btn" id="btnImportAll">全部导入课表</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的页 -->
+    <section class="page page-me" id="pageMe">
+      <div class="page-header"><h2>我的</h2></div>
+      <div class="me-card">
+        <div class="me-avatar">📚</div>
+        <div class="me-name">同学</div>
+        <div class="me-sub" id="meStat">共 0 门课程</div>
+      </div>
+      <div class="me-menu">
+        <div class="menu-item" id="menuTimeTable">
+          <span>⏰ 节次时间表</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="menu-item" id="menuClearData">
+          <span>🗑️ 清空所有数据</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="menu-item" id="menuInstall">
+          <span>📱 安装到桌面</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="menu-item" id="menuAbout">
+          <span>ℹ️ 关于</span>
+          <span class="arrow">›</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="pageSchedule">
+      <div class="nav-icon">📅</div>
+      <div class="nav-label">课表</div>
+    </div>
+    <div class="nav-item" data-page="pageReminder">
+      <div class="nav-icon">🔔</div>
+      <div class="nav-label">提醒</div>
+    </div>
+    <div class="nav-item" data-page="pageImport">
+      <div class="nav-icon">📷</div>
+      <div class="nav-label">导入</div>
+    </div>
+    <div class="nav-item" data-page="pageMe">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">我的</div>
+    </div>
+  </nav>
+
+</div>
+
+<!-- 添加/编辑课程弹窗 -->
+<div class="modal" id="courseModal">
+  <div class="modal-mask"></div>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="modalTitle">添加课程</h3>
+      <button class="close-btn" id="modalClose">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>课程名称</label>
+        <input type="text" id="courseName" placeholder="例如：高等数学">
+      </div>
+      <div class="form-row">
+        <label>上课地点</label>
+        <input type="text" id="courseRoom" placeholder="例如：教1-201">
+      </div>
+      <div class="form-row">
+        <label>任课老师</label>
+        <input type="text" id="courseTeacher" placeholder="选填">
+      </div>
+      <div class="form-row">
+        <label>星期</label>
+        <select id="courseDay">
+          <option value="1">周一</option>
+          <option value="2">周二</option>
+          <option value="3">周三</option>
+          <option value="4">周四</option>
+          <option value="5">周五</option>
+          <option value="6">周六</option>
+          <option value="7">周日</option>
+        </select>
+      </div>
+      <div class="form-row two-col">
+        <div>
+          <label>开始节次</label>
+          <select id="courseStart"></select>
+        </div>
+        <div>
+          <label>结束节次</label>
+          <select id="courseEnd"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>周次（逗号分隔，如 1-8,10-16）</label>
+        <input type="text" id="courseWeeks" value="1-16">
+      </div>
+      <div class="form-row">
+        <label>课程颜色</label>
+        <div class="color-picker" id="colorPicker"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost-btn" id="btnDeleteCourse" style="display:none">删除</button>
+      <button class="primary-btn" id="btnSaveCourse">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 时间设置弹窗 -->
+<div class="modal" id="timeModal">
+  <div class="modal-mask"></div>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>节次时间表</h3>
+      <button class="close-btn" id="timeClose">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="time-table" id="timeTable"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost-btn" id="btnResetTime">恢复默认</button>
+      <button class="primary-btn" id="btnSaveTime">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/@paddlejs-models/ocr?v=2"></script>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="app.js?v=21"></script>
+</body>
+</html>
