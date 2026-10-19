@@ -374,7 +374,8 @@ function initPaddle() {
   if (paddleInitPromise) return paddleInitPromise;
   paddleInitPromise = (async () => {
     if (typeof paddlejs === 'undefined' || !paddlejs.ocr) throw new Error('Paddle.js 未加载');
-    await withTimeout(paddlejs.ocr.init(), 25000, 'Paddle OCR 初始化超时');
+    // 缩短超时到 15 秒，TWA WebView 中 WebGL 大概率不可用，快速失败切换到 Tesseract
+    await withTimeout(paddlejs.ocr.init(), 15000, 'Paddle OCR 初始化超时');
     return 'paddle';
   })();
   return paddleInitPromise;
@@ -385,9 +386,20 @@ function initTesseract() {
   if (tesseractInitPromise) return tesseractInitPromise;
   tesseractInitPromise = (async () => {
     if (typeof Tesseract === 'undefined') throw new Error('Tesseract.js 未加载');
-    const worker = await Tesseract.createWorker('chi_sim+eng', 1, {
-      logger: () => {}
-    });
+    // 使用 jsdelivr CDN（国内可访问）下载语言包和 worker
+    const worker = await withTimeout(
+      Tesseract.createWorker('chi_sim+eng', 1, {
+        logger: (m) => {
+          // 显示下载进度到控制台，方便调试
+          if (m.status) console.log('[Tesseract]', m.status, m.progress ? Math.round(m.progress*100)+'%' : '');
+        },
+        langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/chi_sim@4.0.0/',
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js'
+      }),
+      60000, // 60秒超时，语言包较大
+      'Tesseract OCR 初始化超时（语言包下载失败，请检查网络）'
+    );
     tesseractWorker = worker;
     return 'tesseract';
   })();
@@ -401,7 +413,14 @@ async function ensureOCRInit() {
     ocrEngine = await initPaddle();
   } catch (e) {
     console.warn('Paddle.js OCR 不可用，切换到 Tesseract.js：', e.message);
-    ocrEngine = await initTesseract();
+    try {
+      ocrEngine = await initTesseract();
+    } catch (e2) {
+      console.error('Tesseract.js 也不可用：', e2.message);
+      throw new Error('OCR 引擎初始化失败：
+Paddle.js: ' + e.message + '
+Tesseract.js: ' + e2.message);
+    }
   }
   return ocrEngine;
 }
